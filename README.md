@@ -15,3 +15,7 @@ TODO:
   - The "instrumented" fact has a "default value", I guess this is useful...
 - Add pylint/pyfmt/type checker/etc
 - Add some tests
+
+## Type checker
+
+To run the type checker install `uv` then run `uv run pyright`.
