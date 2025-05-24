@@ -7,6 +7,8 @@ import os
 import re
 import shlex
 import datetime
+import logging
+import logging
 
 from . import model
 
@@ -60,13 +62,13 @@ def enrich_from_ansible(artifact: model.Artifact) -> Tuple[Sequence[model.Fact],
   return (facts, [])
 
 def enrich_from_phoronix_json(artifact: model.Artifact) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
-  if not fnmatch(artifact.path, "**/pts-results.json"):
-    return {}, []
+  if not fnmatch(str(artifact.path), "**/pts-results.json"):
+    return list[model.Fact](), list[model.Metric]()
   try:
     obj = json.loads(artifact.content())
   except json.decoder.JSONDecodeError as e:
     raise EnrichmentFailure() from e
-  metrics = []
+  metrics: List[model.Metric] = []
 
   try:
     # In the current data I"m looking at, the key here isa timestamp with no timezone
@@ -86,28 +88,28 @@ def enrich_from_phoronix_json(artifact: model.Artifact) -> Tuple[Sequence[model.
                                 unit=result["scale"]))
   except KeyError as e:
     raise EnrichmentFailure("missing expected field in phoronix-test-suite-result.json") from e
-  return {}, metrics
+  return list[model.Fact](), metrics
 
 def enrich_from_sysfs_tgz(artifact: model.Artifact) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
-  if not fnmatch(artifact.path, "*/tmp/sysfs_cpu.tgz"):
-    return {}, []
+  if not fnmatch(str(artifact.path), "*/tmp/sysfs_cpu.tgz"):
+    return list[model.Fact](), list[model.Metric]()
   try:
     facts = []
     with tarfile.open(artifact.path, 'r:gz') as tar:
-        for member in tar.getmembers():
+            extracted_file = tar.extractfile(member)
             if not fnmatch(member.name, "/sys/devices/system/cpu/vulnerabilities/*"):
               continue
             content = tar.extractfile(member).read().decode('utf-8')
             # tar is too clever and gets confused by sysfs files, strip of the NULs it adds
-            facts.append(model.Metric(name=f"sysfs_cpu_vuln:{os.path.basename(member.name)}", value=content.strip('\0').strip()))
-    return facts, []
+                facts.append(model.Fact(name=f"sysfs_cpu_vuln:{os.path.basename(member.name)}", value=content.strip('\0').strip())
+    return facts, list[model.Metric]()
   except Exception as e:
     raise EnrichmentFailure() from e
 
 # TODO: Should each kconfig actually be a separate fact? Maybe facts shoudl inherently be nesting...
 def enrich_from_kconfig(artifact: model.Artifact) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
-  if not fnmatch(artifact.path, "*/kconfig"):
-    return {}, []
+  if not fnmatch(str(artifact.path), "*/kconfig"):
+    return list[model.Fact](), list[model.Metric]()
   kconfig_dict = {}
   for line in artifact.content().decode().splitlines():
     if not line.strip() or line.startswith("#"):
@@ -121,8 +123,8 @@ def enrich_from_kconfig(artifact: model.Artifact) -> Tuple[Sequence[model.Fact],
 
 # Reads an /etc/os_release file. Does this selectively...
 def enrich_from_os_release(artifact: model.Artifact) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
-  if not fnmatch(artifact.path, "*/etc_os-release"):
-    return {}, []
+  if not fnmatch(str(artifact.path), "*/etc_os-release"):
+    return list[model.Fact](), list[model.Metric]()
 
   fields = {}
   for line in artifact.content().decode().splitlines():
@@ -145,8 +147,8 @@ def enrich_from_os_release(artifact: model.Artifact) -> Tuple[Sequence[model.Fac
 # Reads selected metrics from the output of the FIO benchmark with --output-format=json+
 # (Maybe also without the plus, not sure).
 def enrich_from_fio_json_plus(artifact: model.Artifact) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
-  if not fnmatch(artifact.path, "*/fio_output_*.json"):
-    return {}, []
+  if not fnmatch(str(artifact.path), "*/fio_output_*.json"):
+    return list[model.Fact](), list[model.Metric]()
 
   try:
     output_obj = json.loads(artifact.content())
@@ -169,8 +171,8 @@ def enrich_from_fio_json_plus(artifact: model.Artifact) -> Tuple[Sequence[model.
 
 # Reads output of `nixos-version --json`
 def enrich_from_nixos_version_json(artifact: model.Artifact) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
-  if not fnmatch(artifact.path, "*/nixos-version.json"):
-    return {}, []
+  if not fnmatch(str(artifact.path), "*/nixos-version.json"):
+    return list[model.Fact](), list[model.Metric]()
 
   try:
     obj = json.loads(artifact.content())
@@ -188,8 +190,8 @@ def enrich_from_nixos_version_json(artifact: model.Artifact) -> Tuple[Sequence[m
 
 # Parses results of bpftrace progrogs included in my benchmarking repo.
 def enrich_from_bpftrace_logs(artifact: model.Artifact) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
-  if not fnmatch(artifact.path, "*/bpftrace_asi_exits.log"):
-    return {}, []
+  if not fnmatch(str(artifact.path), "*/bpftrace_asi_exits.log"):
+    return list[model.Fact](), list[model.Metric]()
 
   facts, metrics = [], []
 

@@ -10,7 +10,7 @@ def derive_asi_on(result: model.Result) -> Tuple[Sequence[model.Fact], Sequence[
     cmdline_fields = result.facts['cmdline_fields'].value
   except KeyError as e:
     logging.debug(f"{result.result_id}: Couldn't derive ASI enablement: missing {e}")
-    return [], []
+    return list[model.Fact](), list[model.Metric]()
 
   asi_builtin = kconfig.get('CONFIG_MITIGATION_ADDRESS_SPACE_ISOLATION') == 'y'
   if asi_builtin:
@@ -29,7 +29,7 @@ def derive_asi_on(result: model.Result) -> Tuple[Sequence[model.Fact], Sequence[
   else:
     fact_val = 'no'
 
-  return ([model.Metric(name="asi_on", value=fact_val)], [])
+  return ([model.Fact(name="asi_on", value=fact_val)], [])
 
 def derive_retbleed_mitigation(result: model.Result) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
   try:
@@ -37,7 +37,7 @@ def derive_retbleed_mitigation(result: model.Result) -> Tuple[Sequence[model.Fac
     sysfs_mit = result.facts['sysfs_cpu_vuln:retbleed'].value
   except KeyError:
     logging.debug(f"{result.result_id}: couldn't derive retbleed mitigation, facts:, {result.facts.keys()}")
-    return [], []
+    return list[model.Fact](), list[model.Metric]()
 
   if not asi_on:
     mit = sysfs_mit
@@ -46,7 +46,7 @@ def derive_retbleed_mitigation(result: model.Result) -> Tuple[Sequence[model.Fac
   else:
     mit = "ASI"
 
-  return  ([model.Metric(name="retbleed_mitigation", value=mit )], [])
+  return  ([model.Fact(name="retbleed_mitigation", value=mit )], [])
 
 # Hack to implement a fact with a "default value" of False.
 def derive_default_instrumented(result: model.Result) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:

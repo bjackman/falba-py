@@ -4,6 +4,7 @@
 
 import pandas as pd
 import pathlib
+import json
 
 from collections.abc import Sequence
 from typing import Dict, List, Self, Any, Optional, Callable, Tuple
@@ -49,7 +50,7 @@ class Result:
         return cls(
             result_dirname=dire.name,
             artifacts={p: Artifact(p) for p in dire.glob('artifacts/**/*') if not p.is_dir()},
-            children={p.name: Self.read_dir(p) for p in dire.glob('children/*')},
+            children=[cls.read_dir(p) for p in dire.glob('children/*') if p.is_dir()],
         )
 
     def add_fact(self, fact: Fact):
