@@ -29,7 +29,7 @@ def derive_asi_on(result: model.Result) -> Tuple[Sequence[model.Fact], Sequence[
   else:
     fact_val = 'no'
 
-  return ([model.Metric(name="asi_on", value=fact_val)], [])
+  return ([model.Fact(name="asi_on", value=fact_val)], [])
 
 def derive_retbleed_mitigation(result: model.Result) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
   try:
@@ -46,7 +46,7 @@ def derive_retbleed_mitigation(result: model.Result) -> Tuple[Sequence[model.Fac
   else:
     mit = "ASI"
 
-  return  ([model.Metric(name="retbleed_mitigation", value=mit )], [])
+  return  ([model.Fact(name="retbleed_mitigation", value=mit )], [])
 
 # Hack to implement a fact with a "default value" of False.
 def derive_default_instrumented(result: model.Result) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
