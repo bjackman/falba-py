@@ -151,22 +151,24 @@ def enrich_from_sysfs_tgz(
         raise EnrichmentFailure() from e
 
 
-# TODO: Should each kconfig actually be a separate fact? Maybe facts shoudl inherently be nesting...
+# TODO: This is an example of where I'm not sure that a flat data model is the
+# correct one.
 def enrich_from_kconfig(
     artifact: model.Artifact,
 ) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
     if not fnmatch(str(artifact.path), "*/kconfig"):
         return [], []
-    kconfig_dict = {}
+    facts = []
     for line in artifact.content().decode().splitlines():
         if not line.strip() or line.startswith("#"):
             continue
         try:
             k, v = line.split("=", maxsplit=1)
-            kconfig_dict[k] = v
         except Exception as e:
             raise EnrichmentFailure(f"failed to parse kconfig line: {line}") from e
-    return [model.Fact(name="kconfig", value=kconfig_dict)], []
+        facts.append(model.Fact(name="kconfig_k", value=v))
+
+    return facts, []
 
 
 # Reads an /etc/os_release file. Does this selectively...
