@@ -7,7 +7,7 @@ import pandas as pd
 import pathlib
 
 from collections.abc import Sequence
-from typing import Dict, List, Self, Any, Optional, Callable, Tuple
+from typing import Dict, Self, Any, Optional, Callable, Tuple
 
 
 class _BaseMetric:

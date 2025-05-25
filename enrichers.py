@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Dict, List, Self, Any, Optional, Callable, Tuple
+from typing import Tuple
 import json
 from fnmatch import fnmatch
 import tarfile
@@ -137,7 +137,7 @@ def enrich_from_sysfs_tgz(
                     continue
                 f = tar.extractfile(member)
                 if f is None:
-                    raise EnrichmentFailure(f"Not a regular file: member.name")
+                    raise EnrichmentFailure("Not a regular file: member.name")
                 content = f.read().decode("utf-8")
                 # tar is too clever and gets confused by sysfs files, strip of the NULs it adds
                 facts.append(
