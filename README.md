@@ -22,3 +22,4 @@ Install `uv` (try `pipx install uv`). Then
 
 - Type check with `uv run pyright`
 - Format wuth `uv run ruff format`
+- Test with `uv run test_enrichers.py`
