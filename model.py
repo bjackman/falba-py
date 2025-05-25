@@ -8,21 +8,24 @@ import pathlib
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Dict, Self, Optional, Callable, Tuple, Hashable
+from typing import Dict, Generic, Self, Optional, Callable, Tuple, TypeVar
+
+
+T = TypeVar("T")
 
 
 @dataclass(frozen=True)
-class _BaseMetric:
+class _BaseMetric(Generic[T]):
     name: str
-    value: Hashable
+    value: T
     unit: Optional[str] = None
 
 
-class Metric(_BaseMetric):
+class Metric(_BaseMetric[T]):
     pass
 
 
-class Fact(_BaseMetric):
+class Fact(_BaseMetric[T]):
     pass
 
 

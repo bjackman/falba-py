@@ -206,7 +206,7 @@ def enrich_from_os_release(
 # (Maybe also without the plus, not sure).
 def enrich_from_fio_json_plus(
     artifact: model.Artifact,
-) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
+) -> Tuple[Sequence[model.Fact], Sequence[model.Metric[float]]]:
     if not fnmatch(str(artifact.path), "*/fio_output_*.json"):
         return [], []
 
