@@ -16,6 +16,9 @@ TODO:
 - Add pylint/pyfmt/type checker/etc
 - Add some tests
 
-## Type checker
+## Checks
 
-To run the type checker install `uv` then run `uv run pyright`.
+Install `uv` (try `pipx install uv`). Then
+
+- Type check with `uv run pyright`
+- Format wuth `uv run ruff format`
