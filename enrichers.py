@@ -223,7 +223,7 @@ def enrich_from_fio_json_plus(
                 metrics.append(
                     model.Metric(
                         name=f"fio_{job['jobname']}_read_{fio_metric}_mean",
-                        value=job["read"]["clat_ns"]["mean"],
+                        value=job["read"][fio_metric]["mean"],
                     )
                 )
             metrics.append(
