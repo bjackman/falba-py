@@ -7,14 +7,15 @@ import pandas as pd
 import pathlib
 
 from collections.abc import Sequence
-from typing import Dict, Self, Any, Optional, Callable, Tuple
+from dataclasses import dataclass
+from typing import Dict, Self, Optional, Callable, Tuple, Hashable
 
 
+@dataclass(frozen=True)
 class _BaseMetric:
-    def __init__(self, name: str, value: Any, unit: Optional[str] = None):
-        self.name = name
-        self.unit = unit
-        self.value = value
+    name: str
+    value: Hashable
+    unit: Optional[str] = None
 
 
 class Metric(_BaseMetric):
@@ -25,11 +26,13 @@ class Fact(_BaseMetric):
     pass
 
 
+@dataclass
 class Artifact:
-    def __init__(self, path: pathlib.Path):
-        if not path.exists:
-            raise ValueError(f"{path} doesn't exist, can't create artifact")
-        self.path = path
+    path: pathlib.Path
+
+    def __post_init__(self):
+        if not self.path.exists:
+            raise ValueError(f"{self.path} doesn't exist, can't create artifact")
 
     def content(self) -> bytes:
         return self.path.read_bytes()
