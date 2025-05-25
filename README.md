@@ -17,10 +17,16 @@ TODO:
 - Decide a better model for implementing/configuring "enrichers"/"derivers" (but
   also maybe just completely rethink the model for ingesting data).
 
+Boring shit I don't care about:
+
+- I put my `testdata` into my `src/` tree. I guess this is somehow wrong. I
+  asked an AI how I should do it and it told me to do this incredibly stupid
+  "fixture" thing with pytest that I don't want to do.
+
 ## Checks
 
 Install `uv` (try `pipx install uv`). Then
 
 - Type check with `uv run pyright`
 - Format wuth `uv run ruff format`
-- Test with `uv run test_enrichers.py`
+- Test with `uv run pytest`
