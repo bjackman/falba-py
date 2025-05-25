@@ -1,5 +1,6 @@
 import model
 
+
 def dump_result(result: model.Result):
     print(f"Result({result.test_name}:{result.result_id})")
     print("\tfacts:")
