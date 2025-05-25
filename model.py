@@ -34,11 +34,10 @@ class Artifact:
         return json.load(f)
 
 class Result:
-    def __init__(self, result_dirname: str, artifacts: Dict[pathlib.Path, Artifact], children: List[Self]):
+    def __init__(self, result_dirname: str, artifacts: Dict[pathlib.Path, Artifact]):
         self.test_name, self.result_id = result_dirname.rsplit(':', maxsplit=1)
         self.result_id = result_dirname
         self.artifacts = artifacts
-        self.children = children
         self.facts = {}
         self.metrics = []
 
@@ -49,7 +48,6 @@ class Result:
         return cls(
             result_dirname=dire.name,
             artifacts={p: Artifact(p) for p in dire.glob('artifacts/**/*') if not p.is_dir()},
-            children={p.name: Self.read_dir(p) for p in dire.glob('children/*')},
         )
 
     def add_fact(self, fact: Fact):
