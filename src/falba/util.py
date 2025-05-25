@@ -1,4 +1,4 @@
-import model
+from . import model
 
 
 def dump_result(result: model.Result):

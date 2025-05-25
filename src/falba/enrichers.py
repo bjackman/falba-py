@@ -9,7 +9,7 @@ import shlex
 import datetime
 import logging
 
-import model
+from . import model
 
 #
 # Here are some super hacky examples of things that might become fact/metric extraction plugins

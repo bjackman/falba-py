@@ -1,12 +1,13 @@
 import unittest
 from pathlib import Path
-from enrichers import (
+
+from .enrichers import (
     enrich_from_os_release,
     enrich_from_fio_json_plus,
     enrich_from_nixos_version_json,
     enrich_from_bpftrace_logs,
 )
-from model import Artifact, Fact, Metric
+from .model import Artifact, Fact, Metric
 
 testdata_dir = Path(__file__).resolve().parent / "testdata"
 
