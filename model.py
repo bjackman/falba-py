@@ -2,6 +2,7 @@
 # This is an under-designed prototype for a generic data model for benchmark outputs
 #
 
+import json
 import pandas as pd
 import pathlib
 
