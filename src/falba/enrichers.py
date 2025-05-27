@@ -7,7 +7,6 @@ import shlex
 import tarfile
 from collections.abc import Sequence
 from fnmatch import fnmatch
-from typing import Tuple
 
 from . import model
 
@@ -25,7 +24,7 @@ class EnrichmentFailure(Exception):
 
 def enrich_from_ansible(
     artifact: model.Artifact,
-) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
+) -> tuple[Sequence[model.Fact], Sequence[model.Metric]]:
     if artifact.path.name != "ansible_facts.json":
         return [], []
     try:
@@ -84,7 +83,7 @@ def enrich_from_ansible(
 
 def enrich_from_phoronix_json(
     artifact: model.Artifact,
-) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
+) -> tuple[Sequence[model.Fact], Sequence[model.Metric]]:
     if not fnmatch(str(artifact.path), "**/pts-results.json"):
         return [], []
     try:
@@ -124,7 +123,7 @@ def enrich_from_phoronix_json(
 
 def enrich_from_sysfs_tgz(
     artifact: model.Artifact,
-) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
+) -> tuple[Sequence[model.Fact], Sequence[model.Metric]]:
     if not fnmatch(str(artifact.path), "*/tmp/sysfs_cpu.tgz"):
         return [], []
     try:
@@ -155,7 +154,7 @@ def enrich_from_sysfs_tgz(
 # correct one.
 def enrich_from_kconfig(
     artifact: model.Artifact,
-) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
+) -> tuple[Sequence[model.Fact], Sequence[model.Metric]]:
     if not fnmatch(str(artifact.path), "*/kconfig"):
         return [], []
     facts = []
@@ -174,7 +173,7 @@ def enrich_from_kconfig(
 # Reads an /etc/os_release file. Does this selectively...
 def enrich_from_os_release(
     artifact: model.Artifact,
-) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
+) -> tuple[Sequence[model.Fact], Sequence[model.Metric]]:
     if not fnmatch(str(artifact.path), "*/etc_os-release"):
         return [], []
 
@@ -206,7 +205,7 @@ def enrich_from_os_release(
 # (Maybe also without the plus, not sure).
 def enrich_from_fio_json_plus(
     artifact: model.Artifact,
-) -> Tuple[Sequence[model.Fact], Sequence[model.Metric[float]]]:
+) -> tuple[Sequence[model.Fact], Sequence[model.Metric[float]]]:
     if not fnmatch(str(artifact.path), "*/fio_output_*.json"):
         return [], []
 
@@ -240,7 +239,7 @@ def enrich_from_fio_json_plus(
 # Reads output of `nixos-version --json`
 def enrich_from_nixos_version_json(
     artifact: model.Artifact,
-) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
+) -> tuple[Sequence[model.Fact], Sequence[model.Metric]]:
     if not fnmatch(str(artifact.path), "*/nixos-version.json"):
         return [], []
 
@@ -266,7 +265,7 @@ def enrich_from_nixos_version_json(
 # Parses results of bpftrace progrogs included in my benchmarking repo.
 def enrich_from_bpftrace_logs(
     artifact: model.Artifact,
-) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
+) -> tuple[Sequence[model.Fact], Sequence[model.Metric]]:
     if not fnmatch(str(artifact.path), "*/bpftrace_asi_exits.log"):
         return [], []
 

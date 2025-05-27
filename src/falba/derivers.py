@@ -1,13 +1,12 @@
 import logging
 from collections.abc import Sequence
-from typing import Tuple
 
 from . import model
 
 
 def derive_asi_on(
     result: model.Result,
-) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
+) -> tuple[Sequence[model.Fact], Sequence[model.Metric]]:
     try:
         kconfig = result.facts["kconfig"].value
         cmdline_fields = result.facts["cmdline_fields"].value
@@ -39,7 +38,7 @@ def derive_asi_on(
 
 def derive_retbleed_mitigation(
     result: model.Result,
-) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
+) -> tuple[Sequence[model.Fact], Sequence[model.Metric]]:
     try:
         asi_on = result.facts["asi_on"].value
         sysfs_mit = result.facts["sysfs_cpu_vuln:retbleed"].value
@@ -62,7 +61,7 @@ def derive_retbleed_mitigation(
 # Hack to implement a fact with a "default value" of False.
 def derive_default_instrumented(
     result: model.Result,
-) -> Tuple[Sequence[model.Fact], Sequence[model.Metric]]:
+) -> tuple[Sequence[model.Fact], Sequence[model.Metric]]:
     if result.facts.get("instrumented"):
         return ([], [])
     return ([model.Fact(name="instrumented", value=False)], [])

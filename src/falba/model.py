@@ -4,9 +4,9 @@
 
 import json
 import pathlib
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from typing import Callable, Dict, Generic, Optional, Self, Tuple, TypeVar
+from typing import Generic, Self, TypeVar
 
 import pandas as pd
 
@@ -17,7 +17,7 @@ T = TypeVar("T")
 class _BaseMetric(Generic[T]):
     name: str
     value: T
-    unit: Optional[str] = None
+    unit: str | None = None
 
 
 class Metric(_BaseMetric[T]):
@@ -45,7 +45,7 @@ class Artifact:
 
 
 class Result:
-    def __init__(self, result_dirname: str, artifacts: Dict[pathlib.Path, Artifact]):
+    def __init__(self, result_dirname: str, artifacts: dict[pathlib.Path, Artifact]):
         self.test_name, self.result_id = result_dirname.rsplit(":", maxsplit=1)
         self.result_id = result_dirname
         self.artifacts = artifacts
@@ -81,7 +81,7 @@ class Result:
 
 
 class Db:
-    def __init__(self, results: Dict[str, Result]):
+    def __init__(self, results: dict[str, Result]):
         self.results = results
 
     @classmethod
@@ -106,7 +106,7 @@ class Db:
 
     # An enricher extracts metrics and facts from artifacts
     def enrich_with(
-        self, enricher: Callable[[Artifact], Tuple[Sequence[Fact], Sequence[Metric]]]
+        self, enricher: Callable[[Artifact], tuple[Sequence[Fact], Sequence[Metric]]]
     ):
         for result in self.results.values():
             for artifact in result.artifacts.values():
@@ -126,7 +126,7 @@ class Db:
     # TODO: should derivers declare which facts they consume and which they product?
     # TODO: should we record the derivation of facts and metrics in the DB?
     def derive_with(
-        self, deriver: Callable[[Result], Tuple[Sequence[Fact], Sequence[Metric]]]
+        self, deriver: Callable[[Result], tuple[Sequence[Fact], Sequence[Metric]]]
     ):
         for result in self.results.values():
             facts, metrics = deriver(result)
