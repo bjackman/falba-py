@@ -28,7 +28,7 @@ def eval_cel_predicate(expr: str, activation: dict[str, Any]) -> bool:
     return bool(result)
 
 
-def cmd_ab(db: falba.model.Db, args: argparse.Namespace):
+def cmd_ab(db: falba.Db, args: argparse.Namespace):
     print(eval_cel_predicate(args.expr, {"foo": 1}))
 
 
