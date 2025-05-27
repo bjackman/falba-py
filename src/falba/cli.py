@@ -3,6 +3,7 @@ import pathlib
 from typing import Any
 
 import celpy
+import lark
 
 import falba
 
@@ -11,15 +12,12 @@ class UserError(Exception):
     pass
 
 
-def eval_cel_predicate(expr: str, activation: dict[str, Any]) -> bool:
-    env = celpy.Environment()
-    ast = env.compile(expr)
-    prog = env.program(ast)
+def eval_cel_pred(prog: celpy.Runner, activation: dict[str, Any]) -> bool:
     try:
         result = prog.evaluate(activation)
     except celpy.CELEvalError as e:  # pyright: ignore
         raise UserError(
-            f"CEL evaluation error. Sorry I don't know how to make this error readable:\n{e!s}"
+            f"CEL evaluation error. Sorry I don't know how to make this error readable:\n{e!s}\nActivation was:{activation!r}"
         ) from e
     if not isinstance(result, bool) and not isinstance(result, int):
         raise UserError(
@@ -28,8 +26,25 @@ def eval_cel_predicate(expr: str, activation: dict[str, Any]) -> bool:
     return bool(result)
 
 
+def do_ab(db: falba.Db, expr: str):
+    env = celpy.Environment()
+    ast = env.compile(expr)
+
+    # Try to figure out what identifiers are referenced in the CEL program.
+    # This is using an API that is not really documented and is probably
+    # completely wrong. What is a "value"? No fucking idea.
+    referenced_idents = []
+    for value in ast.scan_values(lambda v: True):
+        if isinstance(value, lark.Token) and value.type == "IDENT":
+            referenced_idents.append(value.value)
+
+    prog = env.program(ast)
+
+    results = [r for r in db.results.values() if eval_cel_pred(prog, r.fact_vals())]
+
+
 def cmd_ab(db: falba.Db, args: argparse.Namespace):
-    print(eval_cel_predicate(args.expr, {"foo": 1}))
+    print(do_ab(db, args.expr))
 
 
 def main() -> int:
