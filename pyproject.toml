@@ -1,7 +1,10 @@
 [project]
 name = "falba"
 version = "0.1.0"
-dependencies = ["pandas"]
+dependencies = [
+    "cel-python>=0.2.0",
+    "pandas",
+]
 readme = "README.md"
 requires-python = ">=3.12"
 
