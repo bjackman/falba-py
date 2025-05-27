@@ -29,4 +29,6 @@ Install `uv` (try `pipx install uv`). Then
 
 - Type check with `uv run pyright`
 - Format wuth `uv run ruff format`
+- Lint with `uv run ruff check`. Add `--fix` and potentially `--unsafe-fixes` to
+  auto fix.
 - Test with `uv run pytest`
