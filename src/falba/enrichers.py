@@ -1,13 +1,13 @@
-from collections.abc import Sequence
-from typing import Tuple
+import datetime
 import json
-from fnmatch import fnmatch
-import tarfile
+import logging
 import os
 import re
 import shlex
-import datetime
-import logging
+import tarfile
+from collections.abc import Sequence
+from fnmatch import fnmatch
+from typing import Tuple
 
 from . import model
 
