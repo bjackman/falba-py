@@ -66,7 +66,7 @@ class TestEnrichFromFioJsonPlus(unittest.TestCase):
 
                 self.assertEqual(facts, [])
                 self.assertEqual(metrics.keys(), want_metrics.keys())
-                for name in metrics.keys():
+                for name in metrics:
                     self.assertAlmostEqual(
                         metrics[name],
                         want_metrics[name],
