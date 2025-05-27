@@ -21,3 +21,9 @@ where = ["src"]
 
 [project.scripts]
 falba = "falba.cli:main" # This is the crucial part
+
+[tool.ruff.lint]
+select = ["ANN"]
+[tool.ruff.lint.flake8-annotations]
+# Don't require functions that implicitly return None to declare this
+suppress-none-returning = true

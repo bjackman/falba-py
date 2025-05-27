@@ -1,7 +1,7 @@
 import argparse
 
 
-def cmd_ab(args):
+def cmd_ab(args: argparse.Namespace):
     print(f"hello world {args.expr}")
 
 
