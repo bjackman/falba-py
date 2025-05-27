@@ -15,7 +15,7 @@ from . import model
 #
 
 
-class EnrichmentFailure(Exception):
+class EnrichmentError(Exception):
     pass
 
 
@@ -30,7 +30,7 @@ def enrich_from_ansible(
     try:
         ansible_facts = json.loads(artifact.content())
     except json.decoder.JSONDecodeError as e:
-        raise EnrichmentFailure() from e
+        raise EnrichmentError() from e
 
     facts = []
     try:
@@ -61,7 +61,7 @@ def enrich_from_ansible(
         # (processor number, vendor, model)
         ansible_processor = ansible_facts["ansible_processor"]
     except KeyError as e:
-        raise EnrichmentFailure("missing field in ansible all_facts") from e
+        raise EnrichmentError("missing field in ansible all_facts") from e
 
     try:
         p = ansible_processor
@@ -73,7 +73,7 @@ def enrich_from_ansible(
         )
 
     except Exception as e:
-        raise EnrichmentFailure("failed to parse ansible_processor mess") from e
+        raise EnrichmentError("failed to parse ansible_processor mess") from e
 
     # TODO: Need to figure out how to encode my knowledge about whose cmdline this is and ideally where it came from.
     #       Probably when I write the results to the database I should be dropping some metadata
@@ -89,7 +89,7 @@ def enrich_from_phoronix_json(
     try:
         obj = json.loads(artifact.content())
     except json.decoder.JSONDecodeError as e:
-        raise EnrichmentFailure() from e
+        raise EnrichmentError() from e
     metrics = []
 
     try:
@@ -115,7 +115,7 @@ def enrich_from_phoronix_json(
                         )
                     )
     except KeyError as e:
-        raise EnrichmentFailure(
+        raise EnrichmentError(
             "missing expected field in phoronix-test-suite-result.json"
         ) from e
     return [], metrics
@@ -136,7 +136,7 @@ def enrich_from_sysfs_tgz(
                     continue
                 f = tar.extractfile(member)
                 if f is None:
-                    raise EnrichmentFailure("Not a regular file: member.name")
+                    raise EnrichmentError("Not a regular file: member.name")
                 content = f.read().decode("utf-8")
                 # tar is too clever and gets confused by sysfs files, strip of the NULs it adds
                 facts.append(
@@ -147,7 +147,7 @@ def enrich_from_sysfs_tgz(
                 )
         return facts, []
     except Exception as e:
-        raise EnrichmentFailure() from e
+        raise EnrichmentError() from e
 
 
 # TODO: This is an example of where I'm not sure that a flat data model is the
@@ -164,7 +164,7 @@ def enrich_from_kconfig(
         try:
             k, v = line.split("=", maxsplit=1)
         except Exception as e:
-            raise EnrichmentFailure(f"failed to parse kconfig line: {line}") from e
+            raise EnrichmentError(f"failed to parse kconfig line: {line}") from e
         facts.append(model.Fact(name="kconfig_k", value=v))
 
     return facts, []
@@ -184,7 +184,7 @@ def enrich_from_os_release(
         k, v = line.split("=", maxsplit=1)
         parts = shlex.split(v)
         if len(parts) != 1:
-            raise EnrichmentFailure(
+            raise EnrichmentError(
                 f"Seems like an invalid /etc/os-release line (shlex found: {parts}): line"
             )
         fields[k] = parts[0]
@@ -212,7 +212,7 @@ def enrich_from_fio_json_plus(
     try:
         output_obj = json.loads(artifact.content())
     except json.decoder.JSONDecodeError as e:
-        raise EnrichmentFailure() from e
+        raise EnrichmentError() from e
 
     facts, metrics = [], []
 
@@ -231,7 +231,7 @@ def enrich_from_fio_json_plus(
                 )
             )
     except KeyError as e:
-        raise EnrichmentFailure("missing field in FIO output JSON") from e
+        raise EnrichmentError("missing field in FIO output JSON") from e
 
     return facts, metrics
 
@@ -246,7 +246,7 @@ def enrich_from_nixos_version_json(
     try:
         obj = json.loads(artifact.content())
     except json.decoder.JSONDecodeError as e:
-        raise EnrichmentFailure() from e
+        raise EnrichmentError() from e
 
     facts, metrics = [], []
 
@@ -257,7 +257,7 @@ def enrich_from_nixos_version_json(
             )
         )
     except KeyError as e:
-        raise EnrichmentFailure("missing field in FIO output JSON") from e
+        raise EnrichmentError("missing field in FIO output JSON") from e
 
     return facts, metrics
 
