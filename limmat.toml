@@ -1,0 +1,13 @@
+# https://github.com/bjackman/limmat/
+
+[[tests]]
+name = "pyright"
+command = "uv run pyright"
+
+[[tests]]
+name = "ruff-check"
+command = "uv run ruff check"
+
+[[tests]]
+name = "ruff-format"
+command = "uv run ruff format --check"
