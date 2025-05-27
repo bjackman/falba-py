@@ -12,6 +12,9 @@ class UserError(Exception):
     pass
 
 
+# This is dumb.
+# What about using this?
+# https://duckdb.org/docs/stable/clients/python/expression#sql-expression
 def eval_cel_pred(prog: celpy.Runner, activation: dict[str, Any]) -> bool:
     try:
         result = prog.evaluate(activation)
