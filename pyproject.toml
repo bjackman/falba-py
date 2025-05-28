@@ -23,7 +23,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [project.scripts]
-falba = "falba.cli:main" # This is the crucial part
+falba = "falba.cli:main"
 
 [tool.ruff.lint]
 select = ["ANN", "I", "UP", "B", "C4", "FBT", "RUF", "N", "SIM"]
