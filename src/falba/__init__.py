@@ -1,7 +1,7 @@
 import pathlib
 
 from . import derivers, enrichers, model
-from .model import Db
+from .model import Db, Result
 
 
 def read_db(path: pathlib.Path) -> model.Db:
