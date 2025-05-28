@@ -6,7 +6,7 @@ import json
 import pathlib
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from typing import Any, Generic, Self, TypeVar
+from typing import Generic, Self, TypeVar
 
 import pandas as pd
 
@@ -78,10 +78,6 @@ class Result:
 
         Multiple samples of the same metric are allowed."""
         self.metrics.append(metric)
-
-    def fact_vals(self) -> dict[str, Any]:
-        """Return fact values as a dict, with names as the keys."""
-        return {k: f.value for k, f in self.facts.items()}
 
 
 class Db:
