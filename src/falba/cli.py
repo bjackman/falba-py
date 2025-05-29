@@ -44,7 +44,10 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
             else:
                 vals.add(None)
         if len(vals) != 1:
-            raise RuntimeError(f"Multiple values encountered for fact {fact}: {vals}")
+            raise RuntimeError(
+                f"Multiple values encountered for fact {fact}: {vals}\n"
+                + "Try constraining with --fact-eq"
+            )
 
     # Lol now I switched to Pandas after all.
     df = db.flat_df()
