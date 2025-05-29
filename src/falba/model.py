@@ -44,6 +44,9 @@ class Artifact:
             return json.load(f)
 
 
+Enricher = Callable[[Artifact], tuple[Sequence[Fact], Sequence[Metric]]]
+
+
 @dataclass
 class Result:
     result_dirname: str
@@ -57,31 +60,43 @@ class Result:
         self.test_name, self.result_id = self.result_dirname.rsplit(":", maxsplit=1)
 
     @classmethod
-    def read_dir(cls, dire: pathlib.Path) -> Self:
+    def read_dir(cls, dire: pathlib.Path, enrichers: list[Enricher]) -> Self:
         if not dire.is_dir():
             raise RuntimeError(f"{dire} not a directory, can't be read as a Result")
+        artifacts = {
+            p: Artifact(p) for p in dire.glob("artifacts/**/*") if not p.is_dir()
+        }
+
+        # Call all enrichers, checking for forbidden duplicate attributes.
+        fact_to_enricher = {}
+        facts = {}
+        metrics = []
+        for enricher in enrichers:
+            for artifact in artifacts.values():
+                new_facts, new_metrics = enricher(artifact)
+                for fact in new_facts:
+                    if other_enricher := fact_to_enricher.get(fact.name):
+                        raise RuntimeError(
+                            f"Enricher {enricher.__name__} produced fact {fact!r} "
+                            + f"but this was already produced by enricher {other_enricher.__name__}"
+                        )
+                    facts[fact.name] = fact
+                    fact_to_enricher[fact.name] = enricher
+                for metric in new_metrics:
+                    if other_enricher := fact_to_enricher.get(metric.name):
+                        raise RuntimeError(
+                            f"Enricher {enricher.__name__} produced metric {metric!r} "
+                            + f"but a fact by this name was already produced by enricher "
+                            + other_enricher.__name__
+                        )
+                    metrics.append(metric)
+
         return cls(
             result_dirname=dire.name,
-            artifacts={
-                p: Artifact(p) for p in dire.glob("artifacts/**/*") if not p.is_dir()
-            },
+            artifacts=artifacts,
+            facts=facts,
+            metrics=metrics,
         )
-
-    def add_fact(self, fact: Fact):
-        """Add a fact about the system or the test.
-
-        Only one fact with a given name is allowed.
-        """
-        if fact.name in self.facts:
-            raise ValueError(f"fact {fact.name} already exists")
-
-        self.facts[fact.name] = fact
-
-    def add_metric(self, metric: Metric):
-        """Add a metric, which is the thing the test was measuring.
-
-        Multiple samples of the same metric are allowed."""
-        self.metrics.append(metric)
 
 
 class Db:
@@ -89,8 +104,10 @@ class Db:
         self.results = results
 
     @classmethod
-    def read_dir(cls, dire: pathlib.Path) -> Self:
-        return cls(results={p.name: Result.read_dir(p) for p in dire.iterdir()})
+    def read_dir(cls, dire: pathlib.Path, enrichers: list[Enricher]) -> Self:
+        return cls(
+            results={p.name: Result.read_dir(p, enrichers) for p in dire.iterdir()}
+        )
 
     def flat_df(self) -> pl.DataFrame:
         rows = []
@@ -107,24 +124,3 @@ class Db:
                     row[fact.name] = fact.value
                 rows.append(row)
         return pl.DataFrame(rows)
-
-    # An enricher extracts metrics and facts from artifacts
-    def enrich_with(
-        self, enricher: Callable[[Artifact], tuple[Sequence[Fact], Sequence[Metric]]]
-    ):
-        for result in self.results.values():
-            for artifact in result.artifacts.values():
-                try:
-                    facts, metrics = enricher(artifact)
-                except Exception as e:
-                    raise RuntimeError(
-                        f"failed to enrich artifact: {artifact.path}"
-                    ) from e
-
-                for fact in facts:
-                    result.add_fact(fact)
-                for metric in metrics:
-                    result.add_metric(metric)
-
-
-# TODO: I wish this design didn't involve so much mutation.
