@@ -99,9 +99,9 @@ class Result:
         )
 
 
+@dataclass
 class Db:
-    def __init__(self, results: dict[str, Result]):
-        self.results = results
+    results: dict[str, Result]
 
     @classmethod
     def read_dir(cls, dire: pathlib.Path, enrichers: list[Enricher]) -> Self:
