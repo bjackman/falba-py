@@ -94,10 +94,10 @@ class Db:
 
     def flat_df(self) -> pl.DataFrame:
         rows = []
-        for result_id, result in self.results.items():
+        for result in self.results.values():
             for metric in result.metrics:
                 row = {
-                    "result_id": result_id,
+                    "result_id": result.result_id,
                     "test_name": result.test_name,
                     "metric": metric.name,
                     "value": metric.value,
