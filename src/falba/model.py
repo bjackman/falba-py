@@ -5,7 +5,7 @@
 import json
 import pathlib
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Generic, Self, TypeVar
 
 import polars as pl
@@ -44,12 +44,17 @@ class Artifact:
             return json.load(f)
 
 
+@dataclass
 class Result:
-    def __init__(self, result_dirname: str, artifacts: dict[pathlib.Path, Artifact]):
-        self.test_name, self.result_id = result_dirname.rsplit(":", maxsplit=1)
-        self.artifacts = artifacts
-        self.facts = {}
-        self.metrics = []
+    result_dirname: str
+    artifacts: dict[pathlib.Path, Artifact]
+    test_name: str = field(init=False)
+    result_id: str = field(init=False)
+    facts: dict[str, Fact] = field(default_factory=dict)
+    metrics: list[Metric] = field(default_factory=list)
+
+    def __post_init__(self):
+        self.test_name, self.result_id = self.result_dirname.rsplit(":", maxsplit=1)
 
     @classmethod
     def read_dir(cls, dire: pathlib.Path) -> Self:
