@@ -1,14 +1,12 @@
 import pathlib
 
-from . import derivers, enrichers, model
+from . import enrichers, model
 from .model import Db, Result
 
 
 def read_db(path: pathlib.Path) -> model.Db:
-    """Import a database and run all enrichers and derivers."""
+    """Import a database and run all enrichers"""
     db = model.Db.read_dir(path)
     for enricher in enrichers.ENRICHERS:
         db.enrich_with(enricher)
-    for deriver in derivers.DERIVERS:
-        db.derive_with(deriver)
     return db

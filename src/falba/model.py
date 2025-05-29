@@ -126,18 +126,5 @@ class Db:
                 for metric in metrics:
                     result.add_metric(metric)
 
-    # A deriver extracts metrics and facts from other metrics and facts
-    # TODO: should derivers declare which facts they consume and which they product?
-    # TODO: should we record the derivation of facts and metrics in the DB?
-    def derive_with(
-        self, deriver: Callable[[Result], tuple[Sequence[Fact], Sequence[Metric]]]
-    ):
-        for result in self.results.values():
-            facts, metrics = deriver(result)
-            for fact in facts:
-                result.add_fact(fact)
-            for metric in metrics:
-                result.add_metric(metric)
-
 
 # TODO: I wish this design didn't involve so much mutation.

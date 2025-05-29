@@ -14,7 +14,7 @@ TODO:
     describe a single "entity"?
   - The "instrumented" fact has a "default value", I guess this is useful...
 - Add some tests
-- Decide a better model for implementing/configuring "enrichers"/"derivers" (but
+- Decide a better model for implementing/configuring "enrichers" (but
   also maybe just completely rethink the model for ingesting data).
 
 Boring shit I don't care about:
