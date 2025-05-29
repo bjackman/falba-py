@@ -54,6 +54,8 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
     # Lol now I switched to Pandas after all.
     df = db.flat_df().lazy()
     results_df = df.filter(pl.col("result_id").is_in({r.result_id for r in results}))
+    if not len(results_df.collect()):
+        raise RuntimeError("No results matched fact predicates")
 
     df = results_df.filter(pl.col("metric") == metric).collect()
     if not len(df):
