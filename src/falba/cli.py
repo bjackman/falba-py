@@ -51,8 +51,15 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
 
     # Lol now I switched to Pandas after all.
     df = db.flat_df()
-    df = df[df["result_id"].isin(list({r.result_id for r in results}))]
-    df = df[df["metric"] == metric]
+    results_df = df[df["result_id"].isin(list({r.result_id for r in results}))]
+
+    df = results_df[results_df["metric"] == metric]
+    if not len(df):
+        avail_metrics = results_df["metric"].unique()  # pyright: ignore
+        raise RuntimeError(
+            f"No results for metric {metric!r}.\n"
+            + f"Available metrics for seclected results: {avail_metrics}"
+        )
 
     for name, group in df.groupby(experiment_fact):  # pyright: ignore
         gv = group["value"]
