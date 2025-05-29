@@ -84,6 +84,14 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
     subparsers.required = True
 
+    def cmd_ab(args: argparse.Namespace):
+        compare(
+            db,
+            {name: val for [name, val] in args.fact_eq},
+            args.experiment_fact,
+            args.metric,
+        )
+
     compare_parser = subparsers.add_parser("compare", help="Run A/B test")
     compare_parser.add_argument("experiment_fact")
     compare_parser.add_argument("metric")
@@ -98,15 +106,6 @@ def main():
             + "Comparison will be filtered to only include results matching this equality."
         ),
     )
-
-    def cmd_ab(args: argparse.Namespace):
-        compare(
-            db,
-            {name: val for [name, val] in args.fact_eq},
-            args.experiment_fact,
-            args.metric,
-        )
-
     compare_parser.set_defaults(func=cmd_ab)
 
     args = parser.parse_args()
