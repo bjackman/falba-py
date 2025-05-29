@@ -8,7 +8,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Generic, Self, TypeVar
 
-import pandas as pd
+import polars as pl
 
 T = TypeVar("T")
 
@@ -88,7 +88,7 @@ class Db:
     def read_dir(cls, dire: pathlib.Path) -> Self:
         return cls(results={p.name: Result.read_dir(p) for p in dire.iterdir()})
 
-    def flat_df(self) -> pd.DataFrame:
+    def flat_df(self) -> pl.DataFrame:
         rows = []
         for result_id, result in self.results.items():
             for metric in result.metrics:
@@ -102,7 +102,7 @@ class Db:
                 for fact in result.facts.values():
                     row[fact.name] = fact.value
                 rows.append(row)
-        return pd.DataFrame(rows)
+        return pl.DataFrame(rows)
 
     # An enricher extracts metrics and facts from artifacts
     def enrich_with(

@@ -3,7 +3,7 @@ name = "falba"
 version = "0.1.0"
 dependencies = [
     "cel-python>=0.2.0",
-    "pandas",
+    "polars>=1.30.0",
 ]
 readme = "README.md"
 requires-python = ">=3.12"

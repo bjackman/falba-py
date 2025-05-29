@@ -2,6 +2,8 @@ import argparse
 import pathlib
 from typing import Any
 
+import polars as pl
+
 import falba
 
 
@@ -50,23 +52,27 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
             )
 
     # Lol now I switched to Pandas after all.
-    df = db.flat_df()
-    results_df = df[df["result_id"].isin(list({r.result_id for r in results}))]
+    df = db.flat_df().lazy()
+    results_df = df.filter(pl.col("result_id").is_in({r.result_id for r in results}))
 
-    df = results_df[results_df["metric"] == metric]
+    df = results_df.filter(pl.col("metric") == metric).collect()
     if not len(df):
-        avail_metrics = results_df["metric"].unique()  # pyright: ignore
+        avail_metrics = results_df.select(pl.col("metric").unique())
         raise RuntimeError(
             f"No results for metric {metric!r}.\n"
             + f"Available metrics for seclected results: {avail_metrics}"
         )
 
-    for name, group in df.groupby(experiment_fact):  # pyright: ignore
-        gv = group["value"]
-        print(f"{name:<30} mean {metric}: {gv.mean():>13.1f}")
-        print(
-            f"  ({', '.join(group['result_id'].unique())}) {len(group):>8} samples  stddev {gv.std():>10.1f}"  # pyright: ignore
+    anal = (
+        df.lazy()
+        .group_by(pl.col(experiment_fact))
+        .agg(
+            pl.len().alias("samples"),
+            pl.col("value").mean().alias("mean"),
+            pl.col("value").std().alias("std"),
         )
+    )
+    print(anal.collect())
 
 
 def main():
