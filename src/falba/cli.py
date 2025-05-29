@@ -59,7 +59,7 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
 
     df = results_df.filter(pl.col("metric") == metric).collect()
     if not len(df):
-        avail_metrics = results_df.select(pl.col("metric").unique())
+        avail_metrics = results_df.select(pl.col("metric").unique()).collect().rows()
         raise RuntimeError(
             f"No results for metric {metric!r}.\n"
             + f"Available metrics for seclected results: {avail_metrics}"
