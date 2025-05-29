@@ -1,5 +1,9 @@
 import argparse
+import hashlib
+import logging
+import os
 import pathlib
+import shutil
 from typing import Any
 
 import polars as pl
@@ -77,7 +81,58 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
     print(anal.collect())
 
 
+def import_result(db: falba.Db, test_name: str, artifact_paths: list[pathlib.Path]):
+    """Add a result to the database. Update the db in memory too.
+
+    Files specified directly are added by name to the root of the artifacts
+    tree. Directories are copied recursively, preserving the their structure.
+    """
+
+    # Helper to walk through the files in a way that reflects the structure of
+    # the artifacts directory at the end.
+    # Yields tuiples of (current path of file, eventual path of file relative to
+    # artifacts/)
+    def iter_artifacts():
+        for input_path in artifact_paths:
+            if input_path.is_dir():
+                for dirpath, _, filenames in input_path.walk():
+                    for filename in filenames:
+                        cur_path = dirpath / filename
+                        yield cur_path, cur_path.relative_to(input_path)
+            else:
+                yield input_path, input_path.name
+
+    # Figure out the result ID by hashing the artifacts.
+    hash = hashlib.sha256()
+    for path, _ in iter_artifacts():
+        # Doesn't seem to be a concise way to update a hash object
+        # from a file, you can only get a digest for the whole file
+        # at once so just do that and then we'll hash the hashes.
+        with open(path, "rb") as f:
+            hash.update(hashlib.file_digest(f, "sha256").digest())
+
+    # Copy the artifacts into the database.
+    result_dir = db.root_dir / f"{test_name}:{hash.hexdigest()[:12]}"
+    # This must fail if the directory already exists.
+    os.mkdir(result_dir)
+    artifacts_dir = result_dir / "artifacts"
+    num_copied = 0
+    for cur_path, artifact_relpath in iter_artifacts():
+        artifact_path = artifacts_dir / artifact_relpath
+        # Since we know artifacts_dir is new, we don't care if this fails. This
+        # means if the user provides duplicate inputs, meh.
+        os.makedirs(artifact_path.parent, exist_ok=True)
+        shutil.copy(cur_path, artifact_path)
+        num_copied += 1
+
+    logging.info(f"Imported {num_copied} artifacts to {result_dir}")
+
+
 def main():
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
+
     parser = argparse.ArgumentParser(description="Falba CLI")
     parser.add_argument("--result-db", default="./results", type=pathlib.Path)
 
@@ -107,6 +162,16 @@ def main():
         ),
     )
     compare_parser.set_defaults(func=cmd_ab)
+
+    def cmd_import(args: argparse.Namespace):
+        import_result(db, args.test_name, args.file)
+
+    import_parser = subparsers.add_parser(
+        "import", help="Import a result to the database"
+    )
+    import_parser.add_argument("test_name")
+    import_parser.add_argument("file", nargs="+", type=pathlib.Path)
+    import_parser.set_defaults(func=cmd_import)
 
     args = parser.parse_args()
 

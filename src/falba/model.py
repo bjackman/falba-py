@@ -102,11 +102,13 @@ class Result:
 @dataclass
 class Db:
     results: dict[str, Result]
+    root_dir: pathlib.Path
 
     @classmethod
     def read_dir(cls, dire: pathlib.Path, enrichers: list[Enricher]) -> Self:
         return cls(
-            results={p.name: Result.read_dir(p, enrichers) for p in dire.iterdir()}
+            results={p.name: Result.read_dir(p, enrichers) for p in dire.iterdir()},
+            root_dir=dire,
         )
 
     def flat_df(self) -> pl.DataFrame:
