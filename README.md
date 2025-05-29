@@ -32,3 +32,6 @@ Install `uv` (try `pipx install uv`). Then
 - Lint with `uv run ruff check`. Add `--fix` and potentially `--unsafe-fixes` to
   auto fix.
 - Test with `uv run pytest`
+
+There's also a `Justfile` so you can run `just check` to run all the above, or
+`just fix`/`just fix-unsafe` to run the formatter and auto-fix the linters.
