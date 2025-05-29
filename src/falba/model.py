@@ -47,7 +47,6 @@ class Artifact:
 class Result:
     def __init__(self, result_dirname: str, artifacts: dict[pathlib.Path, Artifact]):
         self.test_name, self.result_id = result_dirname.rsplit(":", maxsplit=1)
-        self.result_id = result_dirname
         self.artifacts = artifacts
         self.facts = {}
         self.metrics = []
