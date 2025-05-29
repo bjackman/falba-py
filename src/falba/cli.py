@@ -72,6 +72,7 @@ def main():
     compare_parser.add_argument(
         "--fact-eq",
         action="append",
+        default=[],
         nargs=2,
         metavar=("fact", "value"),
         help=(
