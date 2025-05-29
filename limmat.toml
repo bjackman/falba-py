@@ -11,3 +11,7 @@ command = "uv run ruff check"
 [[tests]]
 name = "ruff-format"
 command = "uv run ruff format --check"
+
+[[tests]]
+name = "test"
+command = "uv run pytest"
