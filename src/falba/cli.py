@@ -68,7 +68,7 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
                 vals.add(result.facts[fact].value)
             else:
                 vals.add(None)
-        if len(vals) != 1:
+        if len(vals) > 1:
             raise RuntimeError(
                 f"Multiple values encountered for fact {fact}: {vals}\n"
                 + "Try constraining with --fact-eq"
