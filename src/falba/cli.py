@@ -197,7 +197,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
     subparsers.required = True
 
-    def cmd_ab(args: argparse.Namespace):
+    def cmd_compare(args: argparse.Namespace):
         compare(
             db,
             {name: val for [name, val] in args.fact_eq},
@@ -219,7 +219,7 @@ def main():
             + "Comparison will be filtered to only include results matching this equality."
         ),
     )
-    compare_parser.set_defaults(func=cmd_ab)
+    compare_parser.set_defaults(func=cmd_compare)
 
     def cmd_import(args: argparse.Namespace):
         import_result(db, args.test_name, args.file)
