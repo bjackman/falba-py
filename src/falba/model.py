@@ -111,7 +111,21 @@ class Db:
             root_dir=dire,
         )
 
+    def results_df(self) -> pl.DataFrame:
+        """Return a DataFrame with a row for each result."""
+        rows = []
+        for result in self.results.values():
+            row = {
+                "result_id": result.result_id,
+                "test_name": result.test_name,
+            }
+            for fact in result.facts.values():
+                row[fact.name] = fact.value
+            rows.append(row)
+        return pl.DataFrame(rows)
+
     def flat_df(self) -> pl.DataFrame:
+        """Return a DataFrame with a row for each metric."""
         rows = []
         for result in self.results.values():
             for metric in result.metrics:

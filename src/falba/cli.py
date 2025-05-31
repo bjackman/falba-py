@@ -128,6 +128,15 @@ def import_result(db: falba.Db, test_name: str, artifact_paths: list[pathlib.Pat
     logging.info(f"Imported {num_copied} artifacts to {result_dir}")
 
 
+def ls_results(db: falba.Db):
+    print(db.results_df())
+
+
+def ls_metrics(db: falba.Db):
+    # TODO: This doesn't print the whole DataFrame unless it's very small.
+    print(db.flat_df())
+
+
 def main():
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -172,6 +181,18 @@ def main():
     import_parser.add_argument("test_name")
     import_parser.add_argument("file", nargs="+", type=pathlib.Path)
     import_parser.set_defaults(func=cmd_import)
+
+    def cmd_ls_results(args: argparse.Namespace):
+        ls_results(db)
+
+    ls_parser = subparsers.add_parser("ls-results", help="List results in the database")
+    ls_parser.set_defaults(func=cmd_ls_results)
+
+    def cmd_ls_metrics(args: argparse.Namespace):
+        ls_metrics(db)
+
+    ls_parser = subparsers.add_parser("ls-metrics", help="List metrics in the database")
+    ls_parser.set_defaults(func=cmd_ls_metrics)
 
     args = parser.parse_args()
 
