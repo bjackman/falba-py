@@ -11,6 +11,13 @@ import polars as pl
 import falba
 
 
+def unicode_hist(series: pl.Series, width: int, y_height: float) -> str:
+    bin_step = y_height / width
+    bin_edges = [j * step for j in range(i)]
+    block_elems = [" ", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
+    return ""
+
+
 def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric: str):
     df = db.flat_df()
 
@@ -69,16 +76,19 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
             + f"Available metrics for seclected results: {avail_metrics}"
         )
 
-    anal = (
-        df.lazy()
-        .group_by(pl.col(experiment_fact))
-        .agg(
-            pl.len().alias("samples"),
-            pl.col("value").mean().alias("mean"),
-            pl.col("value").std().alias("std"),
-        )
-    )
-    print(anal.collect())
+    # Determine x-axis scale for histogram plot.
+    # TODO: Pick width properly based on terminal and other shit we have to print.
+    plot_width = 65
+    bin_step = df.select(pl.col("value")).max() / plot_width
+    bin_edges = [j * bin_step for j in range(plot_width)]
+
+    hists: dict[str, pl.DataFrame] = {}
+    for name, group in df.group_by(pl.col(experiment_fact)):
+        # hist API is not documented properly, specify both bins and bin_count
+        # so that hopefully if the semantics are not what I hope, this will crash
+        # instead of producing subtly-wrong output.
+        print(group)
+        hists[name] = group.select(pl.col("value")).hist(bins=bin_edges, bin_count=width)
 
 
 def import_result(db: falba.Db, test_name: str, artifact_paths: list[pathlib.Path]):
