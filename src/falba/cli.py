@@ -133,7 +133,6 @@ def ls_results(db: falba.Db):
 
 
 def ls_metrics(db: falba.Db):
-    # TODO: This doesn't print the whole DataFrame unless it's very small.
     print(db.flat_df())
 
 
@@ -141,6 +140,9 @@ def main():
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
     )
+
+    # Print entire DataFrames/Series instead of truncating.
+    pl.Config.set_tbl_rows(-1)
 
     parser = argparse.ArgumentParser(description="Falba CLI")
     parser.add_argument("--result-db", default="./results", type=pathlib.Path)
