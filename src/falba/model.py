@@ -63,9 +63,7 @@ class Result:
     def read_dir(cls, dire: pathlib.Path, enrichers: list[Enricher]) -> Self:
         if not dire.is_dir():
             raise RuntimeError(f"{dire} not a directory, can't be read as a Result")
-        artifacts = {
-            p: Artifact(p) for p in dire.glob("artifacts/**/*") if not p.is_dir()
-        }
+        artifacts = {p: Artifact(p) for p in dire.glob("artifacts/**/*") if not p.is_dir()}
 
         # Call all enrichers, checking for forbidden duplicate attributes.
         fact_to_enricher = {}

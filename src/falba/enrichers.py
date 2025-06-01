@@ -35,27 +35,17 @@ def enrich_from_ansible(
     facts = []
     try:
         # Ansible doesn't give us the raw commandline
-        facts.append(
-            model.Metric(name="cmdline_fields", value=ansible_facts["ansible_cmdline"])
-        )
-        facts.append(
-            model.Metric(name="nproc", value=ansible_facts["ansible_processor_nproc"])
-        )
+        facts.append(model.Metric(name="cmdline_fields", value=ansible_facts["ansible_cmdline"]))
+        facts.append(model.Metric(name="nproc", value=ansible_facts["ansible_processor_nproc"]))
         # TODO: would prefer to express this in a way that captures units.
         facts.append(
-            model.Metric(
-                name="memory", value=ansible_facts["ansible_memtotal_mb"], unit="MB"
-            )
+            model.Metric(name="memory", value=ansible_facts["ansible_memtotal_mb"], unit="MB")
         )
         ansible_ansible_facts = ansible_facts["ansible_facts"]  # wat
-        facts.append(
-            model.Metric(name="kernel_version", value=ansible_ansible_facts["kernel"])
-        )
+        facts.append(model.Metric(name="kernel_version", value=ansible_ansible_facts["kernel"]))
 
         ts = ansible_facts["ansible_date_time"]["iso8601_micro"]
-        facts.append(
-            model.Metric(name="timestamp", value=datetime.datetime.fromisoformat(ts))
-        )
+        facts.append(model.Metric(name="timestamp", value=datetime.datetime.fromisoformat(ts)))
 
         # ansible_processor seems to be a list where each consecutive 3 pairs is
         # (processor number, vendor, model)
@@ -65,12 +55,8 @@ def enrich_from_ansible(
 
     try:
         p = ansible_processor
-        cpu_models = {
-            int(p[i]): (p[i + 1] + " " + p[i + 2]) for i in range(0, len(p), 3)
-        }
-        facts.append(
-            model.Metric(name="cpu", value=" + ".join(set(cpu_models.values())))
-        )
+        cpu_models = {int(p[i]): (p[i + 1] + " " + p[i + 2]) for i in range(0, len(p), 3)}
+        facts.append(model.Metric(name="cpu", value=" + ".join(set(cpu_models.values()))))
 
     except Exception as e:
         raise EnrichmentError("failed to parse ansible_processor mess") from e
@@ -96,9 +82,7 @@ def enrich_from_phoronix_json(
         # In the current data I"m looking at, the key here isa timestamp with no timezone
         for result in obj["results"].values():
             if result["identifier"] != "pts/fio-2.1.0":
-                print(
-                    f"Ignoring unknown Phoronix result with identifier: {result['identifier']}"
-                )
+                print(f"Ignoring unknown Phoronix result with identifier: {result['identifier']}")
                 continue
             # TODO: do we want some general capability for hierarchical results? For now
             # we'll just store metrics directly as items in the result and then flatten
@@ -115,9 +99,7 @@ def enrich_from_phoronix_json(
                         )
                     )
     except KeyError as e:
-        raise EnrichmentError(
-            "missing expected field in phoronix-test-suite-result.json"
-        ) from e
+        raise EnrichmentError("missing expected field in phoronix-test-suite-result.json") from e
     return [], metrics
 
 
@@ -130,9 +112,7 @@ def enrich_from_sysfs_tgz(
         facts = []
         with tarfile.open(artifact.path, "r:gz") as tar:
             for member in tar.getmembers():
-                if not fnmatch(
-                    str(member.name), "/sys/devices/system/cpu/vulnerabilities/*"
-                ):
+                if not fnmatch(str(member.name), "/sys/devices/system/cpu/vulnerabilities/*"):
                     continue
                 f = tar.extractfile(member)
                 if f is None:
@@ -191,9 +171,7 @@ def enrich_from_os_release(
 
     facts, metrics = [], []
     if "VARIANT_ID" in fields:
-        facts.append(
-            model.Fact(name="os_release_variant_id", value=fields["VARIANT_ID"])
-        )
+        facts.append(model.Fact(name="os_release_variant_id", value=fields["VARIANT_ID"]))
 
     return facts, metrics
 
@@ -226,9 +204,7 @@ def enrich_from_fio_json_plus(
                     )
                 )
             metrics.append(
-                model.Metric(
-                    name=f"fio_{job['jobname']}_read_iops", value=job["read"]["iops"]
-                )
+                model.Metric(name=f"fio_{job['jobname']}_read_iops", value=job["read"]["iops"])
             )
     except KeyError as e:
         raise EnrichmentError("missing field in FIO output JSON") from e
@@ -252,9 +228,7 @@ def enrich_from_nixos_version_json(
 
     try:
         facts.append(
-            model.Fact(
-                name="nixos_configuration_revision", value=obj["configurationRevision"]
-            )
+            model.Fact(name="nixos_configuration_revision", value=obj["configurationRevision"])
         )
     except KeyError as e:
         raise EnrichmentError("missing field in FIO output JSON") from e

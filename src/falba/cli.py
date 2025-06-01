@@ -137,9 +137,7 @@ def ls_metrics(db: falba.Db):
 
 
 def main():
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
     # Print entire DataFrames/Series instead of truncating.
     pl.Config.set_tbl_rows(-1)
@@ -177,9 +175,7 @@ def main():
     def cmd_import(args: argparse.Namespace):
         import_result(db, args.test_name, args.file)
 
-    import_parser = subparsers.add_parser(
-        "import", help="Import a result to the database"
-    )
+    import_parser = subparsers.add_parser("import", help="Import a result to the database")
 
     def valid_test_name(s: str) -> str:
         # Dumb hack to avoid dealing with the fact that they are used to
@@ -187,9 +183,7 @@ def main():
         # separators in case anyone is benchmarking their retrocomputing
         # projects.
         if "/" in s or "\\" in s:
-            raise argparse.ArgumentTypeError(
-                f"Test names must not contain '/' or '\\' ({s!r})"
-            )
+            raise argparse.ArgumentTypeError(f"Test names must not contain '/' or '\\' ({s!r})")
         return s
 
     import_parser.add_argument("test_name", type=valid_test_name)
