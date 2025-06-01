@@ -1,6 +1,7 @@
 import argparse
 import hashlib
 import logging
+import math
 import os
 import pathlib
 import shutil
@@ -9,6 +10,24 @@ from typing import Any
 import polars as pl
 
 import falba
+
+
+def hist_to_unicode(hist: pl.Series, max_bin_count: int) -> str:
+    """Plot a Polars histogram as a line of unicode block elements.
+
+    The width of the plot is implied by the number of rows in the input Series.
+    Each row is a bin which are assumed to be of equal size. The max_bin_count
+    is the 'y-axis scale', i.e. bins of that size will use the full height of
+    the plot."""
+
+    ret = ""
+    block_elems = [" ", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
+    for bin_count in hist:
+        # THIS IS DEFINITELY WRONG I'M PRETTY SURE THIS TYPE OF SHIT WAS EASY
+        # WHEN I WAS 12 BUT NOW IT IS HARD
+        level = (bin_count / max_bin_count) * (len(block_elems) - 1)
+        ret += block_elems[math.floor(level)]
+    return ret
 
 
 def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric: str):
@@ -69,16 +88,46 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
             + f"Available metrics for seclected results: {avail_metrics}"
         )
 
-    anal = (
-        df.lazy()
-        .group_by(pl.col(experiment_fact))
-        .agg(
-            pl.len().alias("samples"),
-            pl.col("value").mean().alias("mean"),
-            pl.col("value").std().alias("std"),
+    # Below we're gonna do dumb shit that makes assumptions about the fact and
+    # metric type, so preface that with some dumb rules. Note that also we've
+    # already done dumb shit in the rest of Falba which effectively assumes
+    # metrics are floats. I dunno this thing kinda sucks and should probably
+    # just be written in a proper language, or maybe we need to rearchitect it
+    # to less directly expose the user to the untypedness of the Polars API
+    # we're using.
+    # 1. Assuming we can convert the max value to a float.
+    if (dtype := df["value"].dtype) not in [pl.Int64, pl.Float64]:
+        raise NotImplementedError(
+            f"Command only implemented for numeric metrics ({metric!r} is {dtype})"
         )
-    )
-    print(anal.collect())
+    # 2. Assuming we can do maths with the result and not get bullshit.
+    df = df.filter(pl.col("value").is_not_null())
+    # 3. Assuming we can use the fact value as a dict key.
+    if (dtype := df[experiment_fact].dtype) in [pl.List, pl.Array, pl.Object, pl.Struct]:
+        raise NotImplementedError(
+            f"Command only implemented for scalar facts ({experiment_fact!r} is {dtype})"
+        )
+
+    # Determine x-axis scale for histogram plot.
+    # TODO: Pick width properly based on terminal and other shit we have to print.
+    # TODO: This is wrong in a kind of off-by-one way, the top bin will always
+    # be empty. I fucking hate numbers.
+    plot_width = 65
+    max_value = float(df["value"].max())  # pyright: ignore
+    bin_step = max_value / plot_width
+    bin_edges = [j * bin_step for j in range(plot_width)]
+
+    # Determine y-axis scale.
+    hists = {}
+    for (fact_value,), group in df.group_by(pl.col(experiment_fact)):
+        hists[fact_value] = group["value"].hist(bins=bin_edges)
+    max_bin_count = max(hist["count"].max() for hist in hists.values())
+
+    for fact_value, hist in hists.items():
+        print(f"{experiment_fact!r} == {fact_value!r}")
+        hist_plot = hist_to_unicode(hist["count"], max_bin_count)
+        print(hist_plot)
+        print(f"|{'-' * (len(hist_plot) - 2)}|")
 
 
 def import_result(db: falba.Db, test_name: str, artifact_paths: list[pathlib.Path]):
