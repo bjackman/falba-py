@@ -180,7 +180,19 @@ def main():
     import_parser = subparsers.add_parser(
         "import", help="Import a result to the database"
     )
-    import_parser.add_argument("test_name")
+
+    def valid_test_name(s: str) -> str:
+        # Dumb hack to avoid dealing with the fact that they are used to
+        # construct filenames, just forbid path separators. Also exclude MS-DOS
+        # separators in case anyone is benchmarking their retrocomputing
+        # projects.
+        if "/" in s or "\\" in s:
+            raise argparse.ArgumentTypeError(
+                f"Test names must not contain '/' or '\\' ({s!r})"
+            )
+        return s
+
+    import_parser.add_argument("test_name", type=valid_test_name)
     import_parser.add_argument("file", nargs="+", type=pathlib.Path)
     import_parser.set_defaults(func=cmd_import)
 
