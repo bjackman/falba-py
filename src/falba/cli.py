@@ -126,6 +126,7 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
     max_bin_count = max(hist["count"].max() for hist in hists.values())
 
     for fact_value, hist in hists.items():
+        print("\n")
         # Hack to print numbers and stuff with a readable alignment: throw them
         # into a DataFrame.
         group = groups[fact_value]
@@ -139,7 +140,9 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
         hist_plot = hist_to_unicode(hist["count"], max_bin_count)
         print(hist_plot)
         print(f"|{'-' * (len(hist_plot) - 2)}|")
-        print("\n")
+
+    # Show "graph X-axis"
+    print(f"0{max_value:>65}")
 
 
 def import_result(db: falba.Db, test_name: str, artifact_paths: list[pathlib.Path]):
