@@ -110,12 +110,12 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
 
     # Determine x-axis scale for histogram plot.
     # TODO: Pick width properly based on terminal and other shit we have to print.
-    # TODO: This is wrong in a kind of off-by-one way, the top bin will always
-    # be empty. I fucking hate numbers.
     plot_width = 65
     max_value = float(df["value"].max())  # pyright: ignore
     bin_step = max_value / plot_width
-    bin_edges = [j * bin_step for j in range(plot_width)]
+    # The edges are the "right-hand" edge, so we add 1 to j because we want the
+    # first value to be nonzero and the last value to equal max_value.
+    bin_edges = [(j + 1) * bin_step for j in range(plot_width)]
 
     # Determine y-axis scale.
     hists = {}
