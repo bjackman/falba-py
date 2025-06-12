@@ -119,15 +119,27 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
 
     # Determine y-axis scale.
     hists = {}
+    groups = {}
     for (fact_value,), group in df.group_by(pl.col(experiment_fact)):
+        groups[fact_value] = group
         hists[fact_value] = group["value"].hist(bins=bin_edges)
     max_bin_count = max(hist["count"].max() for hist in hists.values())
 
     for fact_value, hist in hists.items():
-        print(f"{experiment_fact!r} == {fact_value!r}")
+        # Hack to print numbers and stuff with a readable alignment: throw them
+        # into a DataFrame.
+        group = groups[fact_value]
+        print(pl.DataFrame([{
+            "samples": len(group),
+            "mean": group["value"].mean(),
+            "max": group["value"].max(),
+            "min": group["value"].min(),
+            experiment_fact: fact_value,
+        }]))
         hist_plot = hist_to_unicode(hist["count"], max_bin_count)
         print(hist_plot)
         print(f"|{'-' * (len(hist_plot) - 2)}|")
+        print("\n")
 
 
 def import_result(db: falba.Db, test_name: str, artifact_paths: list[pathlib.Path]):
@@ -190,6 +202,10 @@ def main():
 
     # Print entire DataFrames/Series instead of truncating.
     pl.Config.set_tbl_rows(-1)
+    # Make prints of DataFrame a bit more concise.
+    pl.Config.set_tbl_hide_dataframe_shape(True)
+    pl.Config.set_tbl_hide_column_data_types(True)
+
 
     parser = argparse.ArgumentParser(description="Falba CLI")
     parser.add_argument("--result-db", default="./results", type=pathlib.Path)
