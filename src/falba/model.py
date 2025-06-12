@@ -132,7 +132,7 @@ class Db:
                     "test_name": result.test_name,
                     "metric": metric.name,
                     "value": metric.value,
-                    "unit": metric.unit,
+                    "unit": metric.unit or "",
                 }
                 for fact in result.facts.values():
                     row[fact.name] = fact.value
