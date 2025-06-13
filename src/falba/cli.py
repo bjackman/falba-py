@@ -137,11 +137,16 @@ def compare(
         hists[fact_value] = group["value"].hist(bins=bin_edges)
     max_bin_count = max(hist["count"].max() for hist in hists.values())
 
-    for fact_value, hist in hists.items():
+    # Print stuff. Do this using a stable ordering.
+    keys = sorted(hists.keys())
+
+    for fact_value in sorted(hists.keys()):
+        hist = hists[fact_value]
+        group = groups[fact_value]
+
         print("\n")
         # Hack to print numbers and stuff with a readable alignment: throw them
         # into a DataFrame.
-        group = groups[fact_value]
         print(
             pl.DataFrame(
                 [
