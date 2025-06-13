@@ -222,9 +222,19 @@ def main():
     subparsers.required = True
 
     def cmd_compare(args: argparse.Namespace):
+        facts_eq = {name: val for [name, val] in args.fact_eq}
+        for [name, s] in args.fact_eq_bool:
+            str_to_bool = {
+                "true": True,
+                "false": False,
+                "none": None,  # lmao
+            }
+            if s not in str_to_bool:
+                raise argparse.ArgumentTypeError("Bool must be 'true', 'false' or 'none' lmao")
+            facts_eq[name] = str_to_bool[s]
         compare(
             db,
-            {name: val for [name, val] in args.fact_eq},
+            facts_eq,
             args.experiment_fact,
             args.metric,
         )
@@ -240,6 +250,17 @@ def main():
         metavar=("fact", "value"),
         help=(
             "Specify a fact and its value (e.g., --fact-eq fact1 val1) "
+            + "Comparison will be filtered to only include results matching this equality."
+        ),
+    )
+    compare_parser.add_argument(
+        "--fact-eq-bool",
+        action="append",
+        default=[],
+        nargs=2,
+        metavar=("fact", "value"),
+        help=(
+            "Specify a fact and its value (e.g., --fact-eq-bool fact1 true) "
             + "Comparison will be filtered to only include results matching this equality."
         ),
     )
