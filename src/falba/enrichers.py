@@ -274,6 +274,15 @@ def enrich_from_elapsed_ns(
     return [], [model.Metric(name="compile-kernel_elapsed", value=ns, unit="ns")]
 
 
+def enrich_from_nixos_system(
+    artifact: model.Artifact,
+) -> tuple[Sequence[model.Fact], Sequence[model.Metric]]:
+    if not fnmatch(str(artifact.path), "*/nixos-system.txt"):
+        return [], []
+
+    return [model.Fact(name="nixos-system", value=artifact.content())], []
+
+
 ENRICHERS = [
     enrich_from_ansible,
     enrich_from_phoronix_json,
@@ -284,4 +293,5 @@ ENRICHERS = [
     enrich_from_nixos_version_json,
     enrich_from_bpftrace_logs,
     enrich_from_elapsed_ns,
+    enrich_from_nixos_system,
 ]
