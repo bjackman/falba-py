@@ -31,7 +31,12 @@ def hist_to_unicode(hist: pl.Series, max_bin_count: int) -> str:
 
 
 def compare(
-    db: falba.Db, test_name: str | None, facts_eq: dict[str, Any], experiment_fact: str, metric: str
+    db: falba.Db,
+    test_name: str | None,
+    facts_eq: dict[str, Any],
+    ignore_facts: set[str],
+    experiment_fact: str,
+    metric: str,
 ):
     df = db.flat_df()
 
@@ -62,7 +67,7 @@ def compare(
     # Check all facts are either part of the experiment, or equal for all
     # results.
     for fact in extant_facts:
-        if fact == experiment_fact or fact in facts_eq:
+        if fact == experiment_fact or fact in facts_eq or fact in ignore_facts:
             continue
         vals = set()
         for result in results:
@@ -73,12 +78,15 @@ def compare(
         if len(vals) > 1:
             raise RuntimeError(
                 f"Multiple values encountered for fact {fact}: {vals}\n"
-                + "Try constraining with --fact-eq"
+                + "Try constraining with --fact-eq, or ignoring with --ignore-fact."
             )
 
     # Lol now I switched to Pandas after all.
-    df = db.flat_df()
-    df = df.filter(pl.col("result_id").is_in({r.result_id for r in results}))
+    df = (
+        db.flat_df()
+        .filter(pl.col("result_id").is_in({r.result_id for r in results}))
+        .drop(ignore_facts)
+    )
     if not len(df):
         raise RuntimeError("No results matched fact predicates")
 
@@ -250,11 +258,12 @@ def main():
                 raise argparse.ArgumentTypeError("Bool must be 'true', 'false' or 'none' lmao")
             facts_eq[name] = str_to_bool[s]
         compare(
-            db,
-            args.test,
-            facts_eq,
-            args.experiment_fact,
-            args.metric,
+            db=db,
+            test_name=args.test,
+            facts_eq=facts_eq,
+            ignore_facts=set(args.ignore_fact),
+            experiment_fact=args.experiment_fact,
+            metric=args.metric,
         )
 
     compare_parser = subparsers.add_parser("compare", help="Run A/B test")
@@ -282,6 +291,13 @@ def main():
             "Specify a fact and its value (e.g., --fact-eq-bool fact1 true) "
             + "Comparison will be filtered to only include results matching this equality."
         ),
+    )
+    compare_parser.add_argument(
+        "--ignore-fact",
+        action="append",
+        default=[],
+        metavar="fact",
+        help="Specify a fact to ignore",
     )
     compare_parser.set_defaults(func=cmd_compare)
 
