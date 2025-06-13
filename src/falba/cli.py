@@ -77,13 +77,13 @@ def compare(
             )
 
     # Lol now I switched to Pandas after all.
-    df = db.flat_df().lazy()
+    df = db.flat_df()
     df = df.filter(pl.col("result_id").is_in({r.result_id for r in results}))
-    if not len(df.collect()):
+    if not len(df):
         raise RuntimeError("No results matched fact predicates")
 
     # Just get the metrics we're comparing.
-    df = df.filter(pl.col("metric") == metric).collect()
+    df = df.filter(pl.col("metric") == metric)
     if not len(df):
         avail_metrics = df.select(pl.col("metric").unique()).rows()
         raise RuntimeError(
@@ -94,7 +94,7 @@ def compare(
     # Check all the results are for the same test.
     if test_name is not None:
         df = df.filter(pl.col("test_name").eq(test_name))
-    test_names = set(df.select("test_name").unique().collect().to_series())
+    test_names = set(df.select("test_name").unique().to_series())
     if len(test_names) != 1:
         raise RuntimeError(
             f"Multiple tests for these metrics: {test_names}. Try constraining with --test"
