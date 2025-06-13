@@ -125,9 +125,9 @@ def compare(
     plot_width = 65
     max_value = float(df["value"].max())  # pyright: ignore
     bin_step = max_value / plot_width
-    # The edges are the "right-hand" edge, so we add 1 to j because we want the
-    # first value to be nonzero and the last value to equal max_value.
-    bin_edges = [(j + 1) * bin_step for j in range(plot_width)]
+    # The edges are inclusive, we need to include both 0 and the max value in
+    # this list. This is why we add 1 to plot_width.
+    bin_edges = [(j) * bin_step for j in range(plot_width + 1)]
 
     # Determine y-axis scale.
     hists = {}
