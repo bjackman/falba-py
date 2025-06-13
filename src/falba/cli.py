@@ -130,13 +130,19 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
         # Hack to print numbers and stuff with a readable alignment: throw them
         # into a DataFrame.
         group = groups[fact_value]
-        print(pl.DataFrame([{
-            "samples": len(group),
-            "mean": group["value"].mean(),
-            "max": group["value"].max(),
-            "min": group["value"].min(),
-            experiment_fact: fact_value,
-        }]))
+        print(
+            pl.DataFrame(
+                [
+                    {
+                        "samples": len(group),
+                        "mean": group["value"].mean(),
+                        "max": group["value"].max(),
+                        "min": group["value"].min(),
+                        experiment_fact: fact_value,
+                    }
+                ]
+            )
+        )
         hist_plot = hist_to_unicode(hist["count"], max_bin_count)
         print(hist_plot)
         print(f"|{'-' * (len(hist_plot) - 2)}|")
@@ -208,7 +214,6 @@ def main():
     # Make prints of DataFrame a bit more concise.
     pl.Config.set_tbl_hide_dataframe_shape(True)
     pl.Config.set_tbl_hide_column_data_types(True)
-
 
     parser = argparse.ArgumentParser(description="Falba CLI")
     parser.add_argument("--result-db", default="./results", type=pathlib.Path)
