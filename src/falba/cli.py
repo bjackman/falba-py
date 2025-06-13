@@ -82,15 +82,6 @@ def compare(
     if not len(df.collect()):
         raise RuntimeError("No results matched fact predicates")
 
-    # Check all the results are for the same test.
-    if test_name is not None:
-        df = df.filter(pl.col("test_name").eq(test_name))
-    test_names = set(df.select("test_name").unique().collect().to_series())
-    if len(test_names) != 1:
-        raise RuntimeError(
-            f"Multiple tests for these metrics: {test_names}. Try constraining with --test"
-        )
-
     # Just get the metrics we're comparing.
     df = df.filter(pl.col("metric") == metric).collect()
     if not len(df):
@@ -98,6 +89,15 @@ def compare(
         raise RuntimeError(
             f"No results for metric {metric!r}.\n"
             + f"Available metrics for seclected results: {avail_metrics}"
+        )
+
+    # Check all the results are for the same test.
+    if test_name is not None:
+        df = df.filter(pl.col("test_name").eq(test_name))
+    test_names = set(df.select("test_name").unique().collect().to_series())
+    if len(test_names) != 1:
+        raise RuntimeError(
+            f"Multiple tests for these metrics: {test_names}. Try constraining with --test"
         )
 
     # Below we're gonna do dumb shit that makes assumptions about the fact and
