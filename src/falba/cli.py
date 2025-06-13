@@ -30,7 +30,9 @@ def hist_to_unicode(hist: pl.Series, max_bin_count: int) -> str:
     return ret
 
 
-def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric: str):
+def compare(
+    db: falba.Db, test_name: str | None, facts_eq: dict[str, Any], experiment_fact: str, metric: str
+):
     df = db.flat_df()
 
     # TODO: This should be done in Pandas or DuckDB or something, but don't
@@ -76,13 +78,23 @@ def compare(db: falba.Db, facts_eq: dict[str, Any], experiment_fact: str, metric
 
     # Lol now I switched to Pandas after all.
     df = db.flat_df().lazy()
-    results_df = df.filter(pl.col("result_id").is_in({r.result_id for r in results}))
-    if not len(results_df.collect()):
+    df = df.filter(pl.col("result_id").is_in({r.result_id for r in results}))
+    if not len(df.collect()):
         raise RuntimeError("No results matched fact predicates")
 
-    df = results_df.filter(pl.col("metric") == metric).collect()
+    # Check all the results are for the same test.
+    if test_name is not None:
+        df = df.filter(pl.col("test_name").eq(test_name))
+    test_names = set(df.select("test_name").unique().collect().to_series())
+    if len(test_names) != 1:
+        raise RuntimeError(
+            f"Multiple tests for these metrics: {test_names}. Try constraining with --test"
+        )
+
+    # Just get the metrics we're comparing.
+    df = df.filter(pl.col("metric") == metric).collect()
     if not len(df):
-        avail_metrics = results_df.select(pl.col("metric").unique()).collect().rows()
+        avail_metrics = df.select(pl.col("metric").unique()).rows()
         raise RuntimeError(
             f"No results for metric {metric!r}.\n"
             + f"Available metrics for seclected results: {avail_metrics}"
@@ -234,6 +246,7 @@ def main():
             facts_eq[name] = str_to_bool[s]
         compare(
             db,
+            args.test,
             facts_eq,
             args.experiment_fact,
             args.metric,
@@ -242,6 +255,7 @@ def main():
     compare_parser = subparsers.add_parser("compare", help="Run A/B test")
     compare_parser.add_argument("experiment_fact")
     compare_parser.add_argument("metric")
+    compare_parser.add_argument("--test", help="Test name to compare results for")
     compare_parser.add_argument(
         "--fact-eq",
         action="append",
