@@ -109,6 +109,13 @@ class Db:
             root_dir=dire,
         )
 
+    def unique_facts(self) -> set[str]:
+        """Return all fact names in the DB."""
+        facts = set()
+        for result in self.results.values():
+            facts |= result.facts.keys()
+        return facts
+
     def results_df(self) -> pl.DataFrame:
         """Return a DataFrame with a row for each result."""
         rows = []
@@ -137,4 +144,5 @@ class Db:
                 for fact in result.facts.values():
                     row[fact.name] = fact.value
                 rows.append(row)
-        return pl.DataFrame(rows)
+        schema = ["result_id", "test_name", "metric", "value", "unit"] + sorted(self.unique_facts())
+        return pl.DataFrame(rows, schema=schema, infer_schema_length=None)

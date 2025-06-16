@@ -45,9 +45,7 @@ def compare(
 
     # Raise an error if any facts were specified that don't exist for any
     # result.
-    extant_facts = set()
-    for result in db.results.values():
-        extant_facts |= result.facts.keys()
+    extant_facts = db.unique_facts()
     missing_facts = set(facts_eq.keys()) - extant_facts
     if missing_facts:
         raise RuntimeError(
