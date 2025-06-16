@@ -139,16 +139,18 @@ def compare(
     hists = {}
     groups = {}
     for (fact_value,), group in df.group_by(pl.col(experiment_fact)):
-        groups[fact_value] = group
-        hists[fact_value] = group["value"].hist(bins=bin_edges)
+        # Hack: stringify value for dict keys since we want a hashable and
+        # sortable key, None is not sortable.
+        groups[str(fact_value)] = group
+        hists[str(fact_value)] = group["value"].hist(bins=bin_edges)
     max_bin_count = max(hist["count"].max() for hist in hists.values())
 
     # Print stuff. Do this using a stable ordering.
     keys = sorted(hists.keys())
 
     for fact_value in sorted(hists.keys()):
-        hist = hists[fact_value]
-        group = groups[fact_value]
+        hist = hists[str(fact_value)]
+        group = groups[str(fact_value)]
 
         print("\n")
         # Hack to print numbers and stuff with a readable alignment: throw them
