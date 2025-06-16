@@ -280,7 +280,7 @@ def enrich_from_nixos_system(
     if not fnmatch(str(artifact.path), "*/nixos-system.txt"):
         return [], []
 
-    return [model.Fact(name="nixos-system", value=artifact.content())], []
+    return [model.Fact(name="nixos_system", value=artifact.content().decode())], []
 
 
 ENRICHERS = [
