@@ -239,6 +239,7 @@ def main():
     # Make prints of DataFrame a bit more concise.
     pl.Config.set_tbl_hide_dataframe_shape(True)
     pl.Config.set_tbl_hide_column_data_types(True)
+    pl.Config.set_fmt_str_lengths(100)
 
     parser = argparse.ArgumentParser(description="Falba CLI")
     parser.add_argument("--result-db", default="./results", type=pathlib.Path)
