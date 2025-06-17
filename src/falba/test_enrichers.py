@@ -2,10 +2,10 @@ import unittest
 from pathlib import Path
 
 from .enrichers import (
-    enrich_from_bpftrace_logs,
-    enrich_from_fio_json_plus,
-    enrich_from_nixos_version_json,
-    enrich_from_os_release,
+    EnrichFromBpftraceLogs,
+    EnrichFromFioJsonPlus,
+    EnrichFromNixosVersionJson,
+    EnrichFromOsRelease,
 )
 from .model import Artifact, Fact, Metric
 
@@ -25,10 +25,11 @@ class TestEnrichFromOsRelease(unittest.TestCase):
             ),
         ]
 
+        enricher = EnrichFromOsRelease()
         for artifact_path, want_facts in test_definitions:
             artifact = Artifact(path=testdata_dir / artifact_path)
             with self.subTest(artifact=artifact):
-                facts, metrics = enrich_from_os_release(artifact)
+                facts, metrics = enricher.enrich(artifact)
                 self.assertEqual(facts, want_facts)
                 self.assertEqual(metrics, [])
 
@@ -56,10 +57,11 @@ class TestEnrichFromFioJsonPlus(unittest.TestCase):
             ),
         ]
 
+        enricher = EnrichFromFioJsonPlus()
         for artifact_path, want_metrics in test_definitions:
             artifact = Artifact(path=testdata_dir / artifact_path)
             with self.subTest(artifact=artifact):
-                facts, metrics = enrich_from_fio_json_plus(artifact)
+                facts, metrics = enricher.enrich(artifact)
 
                 want_metrics = {m.name: m.value for m in want_metrics}
                 metrics = {m.name: m.value for m in metrics}
@@ -97,10 +99,11 @@ class TestEnrichFromNixosVersionJson(unittest.TestCase):
             ),
         ]
 
+        enricher = EnrichFromNixosVersionJson()
         for artifact_path, want_facts in test_definitions:
             artifact = Artifact(path=testdata_dir / artifact_path)
             with self.subTest(artifact=artifact):
-                facts, metrics = enrich_from_nixos_version_json(artifact)
+                facts, metrics = enricher.enrich(artifact)
                 self.assertEqual(facts, want_facts)
                 self.assertEqual(metrics, [])
 
@@ -111,7 +114,8 @@ class TestEnrichFromBpftraceLogs(unittest.TestCase):
             path=testdata_dir
             / "results/nixos-asi-benchmarks:836d59863d4a/artifacts/bpftrace_asi_exits.log"
         )
-        facts, metrics = enrich_from_bpftrace_logs(artifact)
+        enricher = EnrichFromBpftraceLogs()
+        facts, metrics = enricher.enrich(artifact)
 
         self.assertEqual(facts, [Fact(name="instrumented", value=True)])
         self.assertEqual(metrics, [Metric(name="asi_exits", value=16764)])

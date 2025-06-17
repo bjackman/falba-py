@@ -4,6 +4,7 @@
 
 import json
 import pathlib
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import Generic, Self, TypeVar
@@ -44,7 +45,10 @@ class Artifact:
             return json.load(f)
 
 
-Enricher = Callable[[Artifact], tuple[Sequence[Fact], Sequence[Metric]]]
+class Enricher(ABC):
+    @abstractmethod
+    def enrich(self, artifact: Artifact) -> tuple[Sequence[Fact], Sequence[Metric]]:
+        pass
 
 
 @dataclass
@@ -71,21 +75,21 @@ class Result:
         metrics = []
         for enricher in enrichers:
             for artifact in artifacts.values():
-                new_facts, new_metrics = enricher(artifact)
+                new_facts, new_metrics = enricher.enrich(artifact)
                 for fact in new_facts:
                     if other_enricher := fact_to_enricher.get(fact.name):
                         raise RuntimeError(
-                            f"Enricher {enricher.__name__} produced fact {fact!r} "
-                            + f"but this was already produced by enricher {other_enricher.__name__}"
+                            f"Enricher {enricher.__class__.__name__} produced fact {fact!r} "
+                            + f"but this was already produced by enricher {other_enricher.__class__.__name__}"
                         )
                     facts[fact.name] = fact
                     fact_to_enricher[fact.name] = enricher
                 for metric in new_metrics:
                     if other_enricher := fact_to_enricher.get(metric.name):
                         raise RuntimeError(
-                            f"Enricher {enricher.__name__} produced metric {metric!r} "
+                            f"Enricher {enricher.__class__.__name__} produced metric {metric!r} "
                             + f"but a fact by this name was already produced by enricher "
-                            + other_enricher.__name__
+                            + other_enricher.__class__.__name__
                         )
                     metrics.append(metric)
 
