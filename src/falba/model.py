@@ -106,7 +106,7 @@ class Db:
     def read_dir(cls, dire: pathlib.Path, enrichers: list[Enricher]) -> Self:
         results = {}
         for p in dire.iterdir():
-            if dire.name == "results.json":
+            if p.name == "parsers.json":
                 continue  # falba-go configuration
             results[p.name] = Result.read_dir(p, enrichers)
         return cls(
@@ -149,5 +149,5 @@ class Db:
                 for fact in result.facts.values():
                     row[fact.name] = fact.value
                 rows.append(row)
-        schema = ["result_id", "test_name", "metric", "value", "unit"] + sorted(self.unique_facts())
+        schema = ["result_id", "test_name", "metric", "value", "unit", *sorted(self.unique_facts())]
         return pl.DataFrame(rows, schema=schema, infer_schema_length=None)
