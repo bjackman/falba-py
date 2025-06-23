@@ -104,8 +104,13 @@ class Db:
 
     @classmethod
     def read_dir(cls, dire: pathlib.Path, enrichers: list[Enricher]) -> Self:
+        results = {}
+        for p in dire.iterdir():
+            if dire.name == "results.json":
+                continue  # falba-go configuration
+            results[p.name] = Result.read_dir(p, enrichers)
         return cls(
-            results={p.name: Result.read_dir(p, enrichers) for p in dire.iterdir()},
+            results=results,
             root_dir=dire,
         )
 
