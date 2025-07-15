@@ -1,3 +1,3 @@
 # FALBA
 
-Experimental precursor, replaced by https://github.com/bjackman/falba-go.
+Experimental precursor, replaced by https://github.com/bjackman/falba
